@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	// "github.com/labstack/echo/v4/middleware"
@@ -162,5 +166,23 @@ func main() {
 	e.PUT("/expenses/:id", updateExpenseByID)
 	e.GET("/expenses", getAllExpense)
 
-	log.Fatal(e.Start(apiPort))
+	// log.Fatal(e.Start(apiPort))
+
+	go func() {
+		if err := e.Start(apiPort); err != nil && err != http.ErrServerClosed { // Start server
+			e.Logger.Fatal("shutting down the server")
+		}
+	}()
+
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
+
+	<-shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
+	}
+	fmt.Println("Bye Bye")
+
 }
