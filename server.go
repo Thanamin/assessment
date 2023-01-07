@@ -131,8 +131,7 @@ func getAllExpense(c echo.Context) error {
 var db *sql.DB
 
 func main() {
-	fmt.Println("Please use server.go for main file")
-	fmt.Println("start at port:", os.Getenv("PORT"))
+	fmt.Println("Start run server.go !!!")
 
 	//Connect Database
 	var err error
@@ -151,28 +150,18 @@ func main() {
 	if err != nil {
 		log.Fatal("can't create table", err)
 	}
-	// log.Println("Okay")
+
+	log.Println("Database connect Okay !!")
 
 	// Start Server use Echo
+	fmt.Println("start at port:", os.Getenv("PORT"))
 	apiPort := os.Getenv("PORT")
 	e := echo.New()
-
-	// e.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-	// 	if username == "apidesign" || password == "45678" {
-	// 		return true, nil
-	// 	}
-	// 	return false, nil
-	// }))
-
-	// e.Use(middleware.Logger())
-	// e.Use(middleware.Recover())
 
 	e.POST("/expenses", createNewExpense)
 	e.GET("/expenses/:id", getExpenseByID)
 	e.PUT("/expenses/:id", updateExpenseByID)
 	e.GET("/expenses", getAllExpense)
-
-	// log.Fatal(e.Start(apiPort))
 
 	go func() {
 		if err := e.Start(apiPort); err != nil && err != http.ErrServerClosed { // Start server
@@ -189,6 +178,10 @@ func main() {
 	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal(err)
 	}
-	fmt.Println("Bye Bye")
+
+	fmt.Println("")
+	fmt.Println("-----------------------")
+	fmt.Println("--------Goodbye--------")
+	fmt.Println("-----------------------")
 
 }
