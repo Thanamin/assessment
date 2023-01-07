@@ -56,6 +56,20 @@ func createNewExpense(c echo.Context) error {
 }
 
 // func getExpenseByID(c echo.Context) error {
+// 	id := c.Param("id")
+// 	fmt.Println("id=", id)
+// 	e := Expense{}
+// 	stmt, err := db.Prepare("SELECT id, title, amount, note, tags FROM expenses WHERE id = $1")
+// 	if err != nil {
+// 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
+// 	}
+
+// 	row := stmt.QueryRow("SELECT id, title, amount, note, tags FROM expenses WHERE id = $1",id)
+// 	err = row.Scan(&e.ID)
+// 	if err != nil {
+// 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
+// 	}
+
 // 	return c.JSON(http.StatusOK, e)
 // }
 
@@ -63,13 +77,31 @@ func createNewExpense(c echo.Context) error {
 // 	return c.JSON(http.StatusOK, e)
 // }
 
+func getAllExpense(c echo.Context) error {
 
-// func getAllExpense(c echo.Context) error {
-// 	return c.JSON(http.StatusOK, e)
-// }
+	stmt, err := db.Prepare("SELECT id, title, amount, note, tags FROM expenses")
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
+	}
 
+	rows, err := stmt.Query()
+	// err = row.Scan(&e.ID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
+	}
 
+	eTotal := []Expense{}
+	for rows.Next() {
+		e := Expense{}
+		err = rows.Scan(&e.ID, &e.Title, &e.Amount, &e.Note, pq.Array(&e.Tags))
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, Err{Message: "Can't Scan Expense:" + err.Error()})
+		}
+		eTotal = append(eTotal, e)
+	}
 
+	return c.JSON(http.StatusOK, eTotal)
+}
 
 var db *sql.DB
 
@@ -116,9 +148,9 @@ func main() {
 	// e.Use(middleware.Recover())
 
 	e.POST("/expenses", createNewExpense)
-	// e.GET("/expenses/:id",getExpenseByID)
+	// e.GET("/expenses/:id", getExpenseByID)
 	// e.PUT("/expenses/:id",updateExpenseByID)
-	// e.GET("/expenses", getAllExpense)
+	e.GET("/expenses", getAllExpense)
 
 	log.Fatal(e.Start(apiPort))
 }
