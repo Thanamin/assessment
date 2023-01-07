@@ -55,23 +55,23 @@ func createNewExpense(c echo.Context) error {
 	return c.JSON(http.StatusCreated, e)
 }
 
-// func getExpenseByID(c echo.Context) error {
-// 	id := c.Param("id")
-// 	fmt.Println("id=", id)
-// 	e := Expense{}
-// 	stmt, err := db.Prepare("SELECT id, title, amount, note, tags FROM expenses WHERE id = $1")
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
-// 	}
+func getExpenseByID(c echo.Context) error {
+	id := c.Param("id")
 
-// 	row := stmt.QueryRow("SELECT id, title, amount, note, tags FROM expenses WHERE id = $1",id)
-// 	err = row.Scan(&e.ID)
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
-// 	}
+	stmt, err := db.Prepare("SELECT id, title, amount, note, tags FROM expenses WHERE id = $1")
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, Err{Message: "can't prepare query expenses statment:" + err.Error()})
+	}
 
-// 	return c.JSON(http.StatusOK, e)
-// }
+	row := stmt.QueryRow(id)
+	e := Expense{}
+	err = row.Scan(&e.ID, &e.Title, &e.Amount, &e.Note, pq.Array(&e.Tags))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, Err{Message: "can't scan expenses:" + err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, e)
+}
 
 // func updateExpenseByID(c echo.Context) error {
 // 	return c.JSON(http.StatusOK, e)
@@ -148,7 +148,7 @@ func main() {
 	// e.Use(middleware.Recover())
 
 	e.POST("/expenses", createNewExpense)
-	// e.GET("/expenses/:id", getExpenseByID)
+	e.GET("/expenses/:id", getExpenseByID)
 	// e.PUT("/expenses/:id",updateExpenseByID)
 	e.GET("/expenses", getAllExpense)
 
