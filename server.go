@@ -12,11 +12,22 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+
 	// "github.com/labstack/echo/v4/middleware"
 	"github.com/lib/pq"
 	// _ "github.com/lib/pq"
 )
+
+func init() {
+
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
 
 type Expense struct {
 	ID     int      `json:"id"`
@@ -124,9 +135,8 @@ func main() {
 	fmt.Println("start at port:", os.Getenv("PORT"))
 
 	//Connect Database
-	url := "postgres://glvrfamy:3otHFqRv3zLOpqIuSSeq4OS6XhClBm_X@john.db.elephantsql.com/glvrfamy"
 	var err error
-	// url := os.Getenv("DATABASE_URL")
+	url := os.Getenv("DATABASE_URL")
 	db, err = sql.Open("postgres", url)
 	if err != nil {
 		log.Fatal("Connect to database error", err)
@@ -141,14 +151,10 @@ func main() {
 	if err != nil {
 		log.Fatal("can't create table", err)
 	}
-
 	// log.Println("Okay")
 
-	//
-
-	apiPort := ":2565"
-	// apiPort := os.Getenv("PORT")
-
+	// Start Server use Echo
+	apiPort := os.Getenv("PORT")
 	e := echo.New()
 
 	// e.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
