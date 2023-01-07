@@ -37,7 +37,7 @@ func createNewExpense(c echo.Context) error {
 	err = row.Scan(&e.ID)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
+		return c.JSON(http.StatusInternalServerError, Err{Message: "Can't create new expenses statment:" + err.Error()})
 	}
 
 	return c.JSON(http.StatusCreated, e)
@@ -48,14 +48,14 @@ func getExpenseByID(c echo.Context) error {
 
 	stmt, err := db.Prepare("SELECT id, title, amount, note, tags FROM expenses WHERE id = $1")
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, Err{Message: "can't prepare query expenses statment:" + err.Error()})
+		return c.JSON(http.StatusInternalServerError, Err{Message: "Can't prepare query expenses statment:" + err.Error()})
 	}
 
 	row := stmt.QueryRow(id)
 	e := Expense{}
 	err = row.Scan(&e.ID, &e.Title, &e.Amount, &e.Note, pq.Array(&e.Tags))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, Err{Message: "can't scan expenses:" + err.Error()})
+		return c.JSON(http.StatusInternalServerError, Err{Message: "Can't scan expenses:" + err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, e)
@@ -77,11 +77,11 @@ func updateExpenseByID(c echo.Context) error {
 
 	stmt, err := db.Prepare("UPDATE expenses SET title=$2, amount=$3, note=$4, tags=$5 WHERE id=$1")
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, Err{Message: "can't prepare query expenses statment:" + err.Error()})
+		return c.JSON(http.StatusInternalServerError, Err{Message: "Can't prepare Update expenses statment:" + err.Error()})
 	}
 
 	if _, err := stmt.Exec(&e.ID, &e.Title, &e.Amount, &e.Note, pq.Array(e.Tags)); err != nil {
-		log.Fatal("error execute update ", err)
+		log.Fatal("Error execute update ", err)
 	}
 
 	return c.JSON(http.StatusOK, e)
@@ -91,7 +91,7 @@ func getAllExpense(c echo.Context) error {
 
 	stmt, err := db.Prepare("SELECT id, title, amount, note, tags FROM expenses")
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
+		return c.JSON(http.StatusInternalServerError, Err{Message: "Can't prepare select all expenses statment:" + err.Error()})
 	}
 
 	rows, err := stmt.Query()
