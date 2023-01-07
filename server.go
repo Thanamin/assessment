@@ -6,18 +6,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	// "github.com/labstack/echo/v4/middleware"
 	"github.com/lib/pq"
 	// _ "github.com/lib/pq"
 )
-
-// type User struct {
-// 	ID   int    `json:"id"`
-// 	Name string `json:"name"`
-// 	Age  int    `json:"age"`
-// }
 
 type Expense struct {
 	ID     int      `json:"id"`
@@ -31,12 +26,7 @@ type Err struct {
 	Message string `json:"message"`
 }
 
-// var users = []User{
-// 	{ID: 1, Name: "Thanamin", Age: 18},
-// }
-
 func createNewExpense(c echo.Context) error {
-	// u := User{}
 	e := Expense{}
 	err := c.Bind(&e)
 	if err != nil {
@@ -45,9 +35,7 @@ func createNewExpense(c echo.Context) error {
 
 	row := db.QueryRow("INSERT INTO expenses (title, amount, note, tags) values ($1, $2, $3, $4) RETURNING id", e.Title, e.Amount, e.Note, pq.Array(e.Tags))
 	err = row.Scan(&e.ID)
-	// users = append(users, u)
 
-	// fmt.Println("id : % #v\n", u)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
 	}
@@ -73,9 +61,31 @@ func getExpenseByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, e)
 }
 
-// func updateExpenseByID(c echo.Context) error {
-// 	return c.JSON(http.StatusOK, e)
-// }
+func updateExpenseByID(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, Err{Message: err.Error()})
+	}
+
+	e := Expense{}
+	e.ID = id
+
+	err = c.Bind(&e)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, Err{Message: err.Error()})
+	}
+
+	stmt, err := db.Prepare("UPDATE expenses SET title=$2, amount=$3, note=$4, tags=$5 WHERE id=$1")
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, Err{Message: "can't prepare query expenses statment:" + err.Error()})
+	}
+
+	if _, err := stmt.Exec(&e.ID, &e.Title, &e.Amount, &e.Note, pq.Array(e.Tags)); err != nil {
+		log.Fatal("error execute update ", err)
+	}
+
+	return c.JSON(http.StatusOK, e)
+}
 
 func getAllExpense(c echo.Context) error {
 
@@ -85,7 +95,7 @@ func getAllExpense(c echo.Context) error {
 	}
 
 	rows, err := stmt.Query()
-	// err = row.Scan(&e.ID)
+
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
 	}
@@ -149,7 +159,7 @@ func main() {
 
 	e.POST("/expenses", createNewExpense)
 	e.GET("/expenses/:id", getExpenseByID)
-	// e.PUT("/expenses/:id",updateExpenseByID)
+	e.PUT("/expenses/:id", updateExpenseByID)
 	e.GET("/expenses", getAllExpense)
 
 	log.Fatal(e.Start(apiPort))
