@@ -32,7 +32,7 @@ func init() {
 type Expense struct {
 	ID     int      `json:"id"`
 	Title  string   `json:"title"`
-	Amount int      `json:"amount"`
+	Amount float32  `json:"amount"`
 	Note   string   `json:"note"`
 	Tags   []string `json:"tags"`
 }
@@ -143,7 +143,7 @@ func main() {
 	defer db.Close()
 
 	createTb := `
-	CREATE TABLE IF NOT EXISTS expenses ( id SERIAL PRIMARY KEY, title TEXT, amount INT, note TEXT, tags TEXT[]);
+	CREATE TABLE IF NOT EXISTS expenses ( id SERIAL PRIMARY KEY, title TEXT, amount FLOAT, note TEXT, tags TEXT[]);
 	`
 	_, err = db.Exec(createTb)
 
