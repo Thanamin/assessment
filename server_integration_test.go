@@ -44,7 +44,7 @@ func TestCreateNewExpense(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, res.StatusCode)
 	assert.NotEqual(t, 0, e.ID)
 	assert.Equal(t, "test", e.Title)
-	assert.Equal(t, 50, e.Amount)
+	assert.Equal(t, float64(50), e.Amount)
 	assert.Equal(t, "test promotion discount 20 bath", e.Note)
 	assert.Equal(t, []string([]string{"food", "beverage"}), e.Tags)
 }
@@ -68,7 +68,7 @@ func TestUpdateExpenseByID(t *testing.T) {
 	id := 1
 	body := bytes.NewBufferString(`{
 		"title": "testUpdate",
-		"amount": 30,
+		"amount": 30.1,
 		"note": "test promotion discount 40 bath",
 		"tags": [
 		  "food",
@@ -85,7 +85,7 @@ func TestUpdateExpenseByID(t *testing.T) {
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 	assert.NotEqual(t, 0, e.ID)
 	assert.Equal(t, "testUpdate", e.Title)
-	assert.Equal(t, 30, e.Amount)
+	assert.Equal(t, 30.1, e.Amount)
 	assert.Equal(t, "test promotion discount 40 bath", e.Note)
 	assert.Equal(t, []string([]string{"food", "beverage"}), e.Tags)
 }
